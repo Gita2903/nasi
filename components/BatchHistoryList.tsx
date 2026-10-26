@@ -22,7 +22,6 @@ interface BatchHistoryListProps {
   batches: BatchRecord[];
   onDeleteBatch: (id: string) => void;
   onClearAllBatches: () => void;
-  onSeedSampleBatches: () => void;
   onShareBatch: (batch: BatchRecord) => void;
 }
 
@@ -30,7 +29,6 @@ export default function BatchHistoryList({
   batches,
   onDeleteBatch,
   onClearAllBatches,
-  onSeedSampleBatches,
   onShareBatch,
 }: BatchHistoryListProps) {
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -135,16 +133,9 @@ export default function BatchHistoryList({
             <Package className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-semibold text-[#F8FAFC]/80">Belum Ada Batch di Riwayat</h3>
-          <p className="text-xs text-[#F8FAFC]/50 max-w-sm mx-auto mt-1 mb-4 leading-relaxed">
+          <p className="text-xs text-[#F8FAFC]/50 max-w-sm mx-auto mt-1 leading-relaxed">
             Timbang krat sampai terkumpul (misal 10 krat), lalu klik tombol &ldquo;Simpan ke Riwayat Batch&rdquo; untuk menyimpan 1 batch lengkap.
           </p>
-          <button
-            type="button"
-            onClick={onSeedSampleBatches}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-[#F97316] bg-[#F97316]/15 hover:bg-[#F97316]/25 border border-[#F97316]/30 active:scale-95 transition-all inline-flex items-center gap-1.5"
-          >
-            <span>Muat Contoh Riwayat (2 Batch, 15 Krat)</span>
-          </button>
         </div>
       ) : filtered.length === 0 ? (
         <div className="py-8 text-center text-xs text-[#F8FAFC]/50">

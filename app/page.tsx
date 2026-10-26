@@ -6,13 +6,11 @@ import {
   BatchRecord,
   ScaleSettings,
   DEFAULT_SETTINGS,
-  COMMON_RICE_TYPES,
 } from '@/types/scale';
 import {
   calculateGlobalBatchStats,
   getNextCrateNumber,
   getNextBatchNumber,
-  finalizeBatchRecord,
 } from '@/lib/scale-calculator';
 import BackgroundOrbs from '@/components/BackgroundOrbs';
 import IPhoneHeader from '@/components/IPhoneHeader';
@@ -24,44 +22,28 @@ import ReportModal from '@/components/ReportModal';
 import SettingsModal from '@/components/SettingsModal';
 import ConfirmResetModal from '@/components/ConfirmResetModal';
 
-const STORAGE_KEY_BATCHES = 'timbangan_nasi_batches_v2';
-const STORAGE_KEY_ACTIVE_CRATES = 'timbangan_nasi_active_crates_v2';
-const STORAGE_KEY_SETTINGS = 'timbangan_nasi_settings_v2';
+interface AppState {
+  batches: BatchRecord[];
+  activeCrates: CrateEntry[];
+  settings: ScaleSettings;
+}
 
-// Realistic sample: 10 crates in Batch #1
-const SAMPLE_10_CRATES: CrateEntry[] = [
-  { id: 'c-1', crateNumber: 1, grossWeight: 26.5, tareWeight: 1.5, netWeight: 25.0, riceType: 'Nasi Putih Pulen', timestamp: 1700000000000 },
-  { id: 'c-2', crateNumber: 2, grossWeight: 25.8, tareWeight: 1.5, netWeight: 24.3, riceType: 'Nasi Putih Pulen', timestamp: 1700000100000 },
-  { id: 'c-3', crateNumber: 3, grossWeight: 27.2, tareWeight: 1.5, netWeight: 25.7, riceType: 'Nasi Putih Pulen', timestamp: 1700000200000 },
-  { id: 'c-4', crateNumber: 4, grossWeight: 26.0, tareWeight: 1.5, netWeight: 24.5, riceType: 'Nasi Putih Pulen', timestamp: 1700000300000 },
-  { id: 'c-5', crateNumber: 5, grossWeight: 26.8, tareWeight: 1.5, netWeight: 25.3, riceType: 'Nasi Putih Pulen', timestamp: 1700000400000 },
-  { id: 'c-6', crateNumber: 6, grossWeight: 25.9, tareWeight: 1.5, netWeight: 24.4, riceType: 'Nasi Putih Pulen', timestamp: 1700000500000 },
-  { id: 'c-7', crateNumber: 7, grossWeight: 27.5, tareWeight: 1.5, netWeight: 26.0, riceType: 'Nasi Putih Pulen', timestamp: 1700000600000 },
-  { id: 'c-8', crateNumber: 8, grossWeight: 26.3, tareWeight: 1.5, netWeight: 24.8, riceType: 'Nasi Putih Pulen', timestamp: 1700000700000 },
-  { id: 'c-9', crateNumber: 9, grossWeight: 26.7, tareWeight: 1.5, netWeight: 25.2, riceType: 'Nasi Putih Pulen', timestamp: 1700000800000 },
-  { id: 'c-10', crateNumber: 10, grossWeight: 26.9, tareWeight: 1.5, netWeight: 25.4, riceType: 'Nasi Putih Pulen', timestamp: 1700000900000 },
-];
-
-const INITIAL_BATCHES: BatchRecord[] = [
-  finalizeBatchRecord(
-    SAMPLE_10_CRATES,
-    1,
-    'Batch Produksi #1',
-    'Operator Dapur',
-    'Batch 10 krat nasi putih pulen matang sempurna'
-  ),
-];
-
-const INITIAL_ACTIVE_CRATES: CrateEntry[] = [
-  { id: 'ac-1', crateNumber: 1, grossWeight: 26.5, tareWeight: 1.5, netWeight: 25.0, riceType: 'Nasi Uduk', timestamp: 1700001000000 },
-  { id: 'ac-2', crateNumber: 2, grossWeight: 25.8, tareWeight: 1.5, netWeight: 24.3, riceType: 'Nasi Uduk', timestamp: 1700001100000 },
-];
+// Every endpoint returns the full fresh state from MySQL.
+async function api(url: string, method = 'GET', body?: unknown): Promise<AppState> {
+  const res = await fetch(url, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Gagal menghubungi server');
+  return data;
+}
 
 export default function HomePage() {
-  const [batches, setBatches] = useState<BatchRecord[]>(INITIAL_BATCHES);
-  const [activeCrates, setActiveCrates] = useState<CrateEntry[]>(INITIAL_ACTIVE_CRATES);
+  const [batches, setBatches] = useState<BatchRecord[]>([]);
+  const [activeCrates, setActiveCrates] = useState<CrateEntry[]>([]);
   const [settings, setSettings] = useState<ScaleSettings>(DEFAULT_SETTINGS);
-  const [isHydrated, setIsHydrated] = useState(false);
 
   // Active Batch Number & Name
   const activeBatchNumber = getNextBatchNumber(batches);
@@ -73,60 +55,26 @@ export default function HomePage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
-  // Load from local storage after mount safely
+  const apply = (s: AppState) => {
+    setBatches(s.batches);
+    setActiveCrates(s.activeCrates);
+    setSettings(s.settings);
+  };
+
+  // Run an API call, apply fresh state; on failure keep state and tell the user.
+  const run = async (url: string, method?: string, body?: unknown) => {
+    try {
+      apply(await api(url, method, body));
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  };
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        const savedBatches = localStorage.getItem(STORAGE_KEY_BATCHES);
-        const savedActiveCrates = localStorage.getItem(STORAGE_KEY_ACTIVE_CRATES);
-        const savedSettings = localStorage.getItem(STORAGE_KEY_SETTINGS);
-
-        if (savedBatches) {
-          setBatches(JSON.parse(savedBatches));
-        }
-        if (savedActiveCrates) {
-          setActiveCrates(JSON.parse(savedActiveCrates));
-        }
-        if (savedSettings) {
-          setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) });
-        }
-      } catch {
-        // Fallback
-      } finally {
-        setIsHydrated(true);
-      }
-    }, 0);
-
-    return () => clearTimeout(timer);
+    api('/api/state')
+      .then(apply)
+      .catch((e) => alert(`Database error: ${e.message}`));
   }, []);
-
-  // Sync to local storage after hydration
-  useEffect(() => {
-    if (!isHydrated) return;
-    try {
-      localStorage.setItem(STORAGE_KEY_BATCHES, JSON.stringify(batches));
-    } catch {
-      // Ignore
-    }
-  }, [batches, isHydrated]);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-    try {
-      localStorage.setItem(STORAGE_KEY_ACTIVE_CRATES, JSON.stringify(activeCrates));
-    } catch {
-      // Ignore
-    }
-  }, [activeCrates, isHydrated]);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-    try {
-      localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
-    } catch {
-      // Ignore
-    }
-  }, [settings, isHydrated]);
 
   // Derived global stats
   const globalStats = calculateGlobalBatchStats(batches, activeCrates);
@@ -135,50 +83,22 @@ export default function HomePage() {
     : activeCrates.length + 1;
 
   // Handlers
-  const handleAddCrate = (crateData: Omit<CrateEntry, 'id' | 'timestamp'>) => {
-    const newCrate: CrateEntry = {
-      ...crateData,
-      id: `crate-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      timestamp: Date.now(),
-    };
-    setActiveCrates((prev) => [...prev, newCrate]);
-  };
+  const handleAddCrate = (crateData: Omit<CrateEntry, 'id' | 'timestamp'>) =>
+    run('/api/crates', 'POST', crateData);
 
-  const handleRemoveActiveCrate = (id: string) => {
-    setActiveCrates((prev) => prev.filter((c) => c.id !== id));
-  };
+  const handleRemoveActiveCrate = (id: string) => run(`/api/crates/${id}`, 'DELETE');
 
-  const handleClearActiveCrates = () => {
-    setActiveCrates([]);
-  };
+  const handleClearActiveCrates = () => run('/api/crates', 'DELETE');
 
-  // The critical user requirement: "setelah simpan krat udah banyak contoh 10 krat terus klik simpan ke riwayat. jadi lah 1 batch yang berisi 10 krat"
+  // Batch number/name/operator are decided server-side inside one transaction
   const handleFinalizeBatch = (notes?: string) => {
     if (activeCrates.length === 0) return;
-
-    const newBatch = finalizeBatchRecord(
-      activeCrates,
-      activeBatchNumber,
-      activeBatchName,
-      settings.operatorName,
-      notes
-    );
-
-    // Save batch to history
-    setBatches((prev) => [newBatch, ...prev]);
-
-    // Reset active crates for next batch
-    setActiveCrates([]);
+    return run('/api/batches', 'POST', { notes });
   };
 
-  const handleDeleteBatch = (id: string) => {
-    setBatches((prev) => prev.filter((b) => b.id !== id));
-  };
+  const handleDeleteBatch = (id: string) => run(`/api/batches/${id}`, 'DELETE');
 
-  const handleClearAllBatches = () => {
-    setBatches([]);
-    setActiveCrates([]);
-  };
+  const handleClearAllBatches = () => run('/api/batches', 'DELETE');
 
   const handleShareBatch = (batch: BatchRecord) => {
     setSelectedBatchForReport(batch);
@@ -188,35 +108,6 @@ export default function HomePage() {
   const handleOpenGlobalReport = () => {
     setSelectedBatchForReport(null);
     setIsReportOpen(true);
-  };
-
-  const handleSeedSampleBatches = () => {
-    const batch1 = finalizeBatchRecord(
-      SAMPLE_10_CRATES,
-      1,
-      'Batch Produksi #1',
-      settings.operatorName,
-      'Batch 10 krat nasi putih pulen (0.251 ton)'
-    );
-
-    const cratesBatch2: CrateEntry[] = [
-      { id: 'b2-1', crateNumber: 1, grossWeight: 26.5, tareWeight: 1.5, netWeight: 25.0, riceType: 'Nasi Uduk', timestamp: Date.now() - 30 * 60000 },
-      { id: 'b2-2', crateNumber: 2, grossWeight: 27.2, tareWeight: 1.5, netWeight: 25.7, riceType: 'Nasi Uduk', timestamp: Date.now() - 25 * 60000 },
-      { id: 'b2-3', crateNumber: 3, grossWeight: 26.8, tareWeight: 1.5, netWeight: 25.3, riceType: 'Nasi Uduk', timestamp: Date.now() - 20 * 60000 },
-      { id: 'b2-4', crateNumber: 4, grossWeight: 26.1, tareWeight: 1.5, netWeight: 24.6, riceType: 'Nasi Uduk', timestamp: Date.now() - 15 * 60000 },
-      { id: 'b2-5', crateNumber: 5, grossWeight: 27.0, tareWeight: 1.5, netWeight: 25.5, riceType: 'Nasi Uduk', timestamp: Date.now() - 10 * 60000 },
-    ];
-
-    const batch2 = finalizeBatchRecord(
-      cratesBatch2,
-      2,
-      'Batch Produksi #2',
-      settings.operatorName,
-      'Batch 5 krat nasi gurih uduk'
-    );
-
-    setBatches([batch2, batch1]);
-    setActiveCrates([]);
   };
 
   return (
@@ -273,7 +164,6 @@ export default function HomePage() {
               batches={batches}
               onDeleteBatch={handleDeleteBatch}
               onClearAllBatches={() => setIsResetConfirmOpen(true)}
-              onSeedSampleBatches={handleSeedSampleBatches}
               onShareBatch={handleShareBatch}
             />
           </div>
@@ -309,7 +199,7 @@ export default function HomePage() {
         settings={settings}
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onSave={(newSettings) => setSettings(newSettings)}
+        onSave={(newSettings) => run('/api/settings', 'PUT', newSettings)}
       />
 
       <ConfirmResetModal
