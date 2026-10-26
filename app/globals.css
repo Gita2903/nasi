@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #F8FAFC;
+    background-color: #090d16;
+  }
+}
+
+@layer utilities {
+  /* iOS Glassmorphism Card Style with Neutral #F8FAFC tint */
+  .ios-glass {
+    background: rgba(248, 250, 252, 0.07);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(248, 250, 252, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.38);
+  }
+
+  .ios-glass-bright {
+    background: rgba(248, 250, 252, 0.12);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(248, 250, 252, 0.24);
+    box-shadow: 0 10px 36px 0 rgba(0, 0, 0, 0.45);
+  }
+
+  .ios-glass-pill {
+    background: rgba(248, 250, 252, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(248, 250, 252, 0.2);
+  }
+
+  .ios-glass-input {
+    background: rgba(248, 250, 252, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(248, 250, 252, 0.15);
+  }
+
+  .ios-glass-input:focus {
+    background: rgba(248, 250, 252, 0.12);
+    border-color: #F97316;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.35);
+  }
+
+  /* Custom subtle scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(248, 250, 252, 0.18);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(248, 250, 252, 0.3);
+  }
+}

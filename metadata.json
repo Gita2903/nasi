@@ -1,0 +1,8 @@
+{
+  "name": "Timbangan Nasi Krat - Glassmorphism iOS",
+  "description": "Aplikasi pencatatan dan riwayat timbangan nasi per krat praktis bergaya glassmorphism iOS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
