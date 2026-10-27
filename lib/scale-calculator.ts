@@ -141,7 +141,10 @@ export function finalizeBatchRecord(
   notes?: string
 ): BatchRecord {
   const stats = calculateScaleStats(crates);
-  const dominantRice = crates[0]?.riceType || 'Nasi Putih Pulen';
+  const riceCount = new Map<string, number>();
+  for (const c of crates) riceCount.set(c.riceType, (riceCount.get(c.riceType) ?? 0) + 1);
+  const dominantRice =
+    [...riceCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || 'Frozen Nasi Putih';
   const now = Date.now();
   const startTime = crates.length > 0 ? Math.min(...crates.map((c) => c.timestamp)) : now;
 
@@ -272,7 +275,7 @@ export function generateBatchWhatsAppSummary(batch: BatchRecord): string {
   });
 
   lines.push(`----------------------------------------`);
-  lines.push(`_Dicatat via Aplikasi Timbangan Nasi iOS Glass_`);
+  lines.push(`_Dicatat via Aplikasi Timbangan Nasi_`);
 
   return lines.join('\n');
 }
@@ -313,7 +316,7 @@ export function generateAllBatchesWhatsAppSummary(batches: BatchRecord[]): strin
   });
 
   lines.push(`----------------------------------------`);
-  lines.push(`_Dicatat via Aplikasi Timbangan Nasi iOS Glass_`);
+  lines.push(`_Dicatat via Aplikasi Timbangan Nasi_`);
 
   return lines.join('\n');
 }

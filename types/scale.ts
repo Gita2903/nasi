@@ -42,7 +42,7 @@ export const DEFAULT_SETTINGS: ScaleSettings = {
 };
 
 export const COMMON_RICE_TYPES = [
-  'Nasi Putih Pulen',
+  'Frozen Nasi Putih',
   'Nasi Uduk',
   'Nasi Kuning',
   'Nasi Merah',

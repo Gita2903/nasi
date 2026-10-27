@@ -59,6 +59,7 @@ export async function loadState() {
   const batches = b.map((r) => toBatch(r, byBatch.get(r.id) ?? []));
 
   const st = s[0];
+  if (!st) throw new Error('Baris settings (id=1) tidak ada. Jalankan db/schema.sql');
   const settings: ScaleSettings = {
     defaultTare: st.default_tare,
     operatorName: st.operator_name,

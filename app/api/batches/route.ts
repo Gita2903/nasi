@@ -1,8 +1,10 @@
 import { pool, loadState, toCrate } from '@/lib/db';
+import { readJson, badRequest, serverError } from '@/lib/http';
 import { finalizeBatchRecord } from '@/lib/scale-calculator';
 
 export async function POST(req: Request) {
-  const { notes } = await req.json().catch(() => ({}));
+  const body = (await readJson(req)) ?? {};
+  const notes = body.notes ? String(body.notes).slice(0, 1000) : undefined;
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -11,7 +13,7 @@ export async function POST(req: Request) {
     );
     if (cr.length === 0) {
       await conn.rollback();
-      return Response.json({ error: 'Tidak ada krat aktif' }, { status: 400 });
+      return badRequest('Tidak ada krat aktif');
     }
     const [[{ n }]] = await conn.query<any[]>('SELECT COALESCE(MAX(batch_number),0)+1 AS n FROM batches FOR UPDATE');  
     const [[s]] = await conn.query<any[]>('SELECT * FROM settings WHERE id = 1');  
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
     await conn.commit();
   } catch (e) {
     await conn.rollback();
-    throw e;
+    return serverError(e);
   } finally {
     conn.release();
   }
@@ -43,7 +45,11 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
-  await pool.query('DELETE FROM batches'); // crates of batches cascade
-  await pool.query('DELETE FROM crates WHERE batch_id IS NULL');
-  return Response.json(await loadState());
+  try {
+    await pool.query('DELETE FROM batches'); // crates of batches cascade
+    await pool.query('DELETE FROM crates WHERE batch_id IS NULL');
+    return Response.json(await loadState());
+  } catch (e) {
+    return serverError(e);
+  }
 }

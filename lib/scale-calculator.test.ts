@@ -38,7 +38,7 @@ test('finalizeBatchRecord aggregates 10 crates into 1 batch with kg and ton stat
     grossWeight: 26.5,
     tareWeight: 1.5,
     netWeight: 25.0,
-    riceType: 'Nasi Putih Pulen',
+    riceType: 'frozen Nasi putih',
     timestamp: 1700000000000 + i * 60000,
   }));
 
@@ -103,7 +103,7 @@ test('generateBatchWhatsAppSummary and generateBatchCSV output correct format', 
     grossWeight: 26.5,
     tareWeight: 1.5,
     netWeight: 25.0,
-    riceType: 'Nasi Putih',
+    riceType: 'Frozen Nasi Putih',
     timestamp: 1700000000000,
     notes: 'Krat pertama',
   };
@@ -117,5 +117,14 @@ test('generateBatchWhatsAppSummary and generateBatchCSV output correct format', 
 
   const csv = generateBatchCSV([batch]);
   assert.match(csv, /Batch #,Nama Batch,No Krat/);
-  assert.match(csv, /1,"Batch Pagi",1,"Nasi Putih",26.5,1.5,25/);
+  assert.match(csv, /1,"Batch Pagi",1,"Frozen Nasi Putih",26.5,1.5,25/);
+});
+
+test('finalizeBatchRecord picks the most frequent rice type', () => {
+  const mk = (n: number, r: string): CrateEntry => ({
+    id: `c${n}`, crateNumber: n, grossWeight: 11.5, tareWeight: 1.5,
+    netWeight: 10, riceType: r, timestamp: n,
+  });
+  const b = finalizeBatchRecord([mk(1, 'Nasi Uduk'), mk(2, 'Nasi Kuning'), mk(3, 'Nasi Kuning')], 1);
+  assert.equal(b.riceType, 'Nasi Kuning');
 });
