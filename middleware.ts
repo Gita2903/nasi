@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const hasSession = Boolean(req.cookies.get('timbangan_session')?.value);
-  const publicPath = path === '/login' || path === '/setup' || path.startsWith('/api/auth');
+  const publicPath = path === '/login' || path.startsWith('/api/auth');
   if (!hasSession && !publicPath) {
     if (path.startsWith('/api/')) return NextResponse.json({ error: 'Login diperlukan' }, { status: 401 });
     return NextResponse.redirect(new URL('/login', req.url));
