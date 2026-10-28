@@ -4,7 +4,8 @@ import { finalizeBatchRecord } from '@/lib/scale-calculator';
 import { requireUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
-  try { await requireUser(); } catch { return Response.json({ error: 'Login diperlukan' }, { status: 401 }); }
+  let user;
+  try { user = await requireUser(); } catch { return Response.json({ error: 'Login diperlukan' }, { status: 401 }); }
   const body = (await readJson(req)) ?? {};
   const notes = body.notes ? String(body.notes).slice(0, 1000) : undefined;
   const portionGrams = Number(body.portionGrams);
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
       cr.map(toCrate),
       n,
       `${s.default_batch_prefix} #${n}`,
-      s.operator_name,
+      user.displayName, // petugas = akun yang login saat batch disimpan
       notes || undefined,
       portionGrams
     );

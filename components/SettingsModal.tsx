@@ -14,7 +14,6 @@ interface SettingsModalProps {
 export default function SettingsModal({ settings, onClose, onSave }: SettingsModalProps) {
   const [defaultTare, setDefaultTare] = useState<number>(settings.defaultTare);
   const [defaultBatchPrefix, setDefaultBatchPrefix] = useState<string>(settings.defaultBatchPrefix);
-  const [operatorName, setOperatorName] = useState<string>(settings.operatorName);
   const [autoIncrementCrate, setAutoIncrementCrate] = useState<boolean>(settings.autoIncrementCrate);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,7 +21,6 @@ export default function SettingsModal({ settings, onClose, onSave }: SettingsMod
     onSave({
       defaultTare: Math.max(0, defaultTare),
       defaultBatchPrefix: defaultBatchPrefix.trim() || 'Batch Produksi',
-      operatorName: operatorName.trim() || 'Operator',
       autoIncrementCrate,
     });
     onClose();
@@ -75,21 +73,6 @@ export default function SettingsModal({ settings, onClose, onSave }: SettingsMod
             onChange={(e) => setDefaultBatchPrefix(e.target.value)}
             maxLength={80}
             placeholder="Contoh: Produksi Pagi"
-            className="field"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="operator-name" className="mb-2 block text-sm font-medium">
-            Nama petugas
-          </label>
-          <input
-            id="operator-name"
-            type="text"
-            value={operatorName}
-            onChange={(e) => setOperatorName(e.target.value)}
-            maxLength={80}
-            placeholder="Contoh: Budi"
             className="field"
           />
         </div>

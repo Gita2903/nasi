@@ -12,7 +12,7 @@ import {
   getNextCrateNumber,
   getNextBatchNumber,
 } from '@/lib/scale-calculator';
-import AppHeader from '@/components/AppHeader';
+import AppHeader, { SessionUser } from '@/components/AppHeader';
 import SummaryStrip from '@/components/SummaryStrip';
 import ScaleInputForm from '@/components/ScaleInputForm';
 import ActiveBatchPanel from '@/components/ActiveBatchPanel';
@@ -43,6 +43,7 @@ export default function HomePage() {
   const [batches, setBatches] = useState<BatchRecord[]>([]);
   const [activeCrates, setActiveCrates] = useState<CrateEntry[]>([]);
   const [settings, setSettings] = useState<ScaleSettings>(DEFAULT_SETTINGS);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [portionGrams, setPortionGrams] = useState(150);
@@ -81,6 +82,10 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => setUser(d.user ?? null))
+      .catch(() => setUser(null));
     api('/api/state')
       .then((s) => {
         apply(s);
@@ -122,7 +127,7 @@ export default function HomePage() {
   return (
     <>
       <AppHeader
-        settings={settings}
+        user={user}
         batchCount={batches.length}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenReport={openGlobalReport}

@@ -10,10 +10,9 @@ export async function PUT(req: Request) {
   if (isNaN(tare) || tare < 0) return badRequest('Tara tidak valid');
   try {
   await pool.query(
-    'UPDATE settings SET default_tare=?, operator_name=?, auto_increment_crate=?, default_batch_prefix=? WHERE id=1',
+    'UPDATE settings SET default_tare=?, auto_increment_crate=?, default_batch_prefix=? WHERE id=1',
     [
       tare,
-      String(b.operatorName ?? '').slice(0, 80),
       !!b.autoIncrementCrate,
       String(b.defaultBatchPrefix ?? '').slice(0, 80),
     ]

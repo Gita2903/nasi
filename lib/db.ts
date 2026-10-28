@@ -64,7 +64,6 @@ export async function loadState() {
   if (!st) throw new Error('Baris settings (id=1) tidak ada. Jalankan db/schema.sql');
   const settings: ScaleSettings = {
     defaultTare: st.default_tare,
-    operatorName: st.operator_name,
     autoIncrementCrate: !!st.auto_increment_crate,
     defaultBatchPrefix: st.default_batch_prefix,
   };

@@ -31,14 +31,12 @@ export interface BatchRecord {
 
 export interface ScaleSettings {
   defaultTare: number;
-  operatorName: string;
   autoIncrementCrate: boolean;
   defaultBatchPrefix: string;
 }
 
 export const DEFAULT_SETTINGS: ScaleSettings = {
   defaultTare: 1.5,
-  operatorName: 'Operator Dapur',
   autoIncrementCrate: true,
   defaultBatchPrefix: 'Batch Produksi',
 };
