@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    container_name: timbangan-nasi-app
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8004:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_USER: timbangan_nasi
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      DB_NAME: timbangan_nasi
+      TZ: Asia/Jakarta
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks: [timbangan-nasi]
+    security_opt: [no-new-privileges:true]
+
+  mariadb:
+    image: mariadb:11.8
+    container_name: timbangan-nasi-db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: timbangan_nasi
+      MARIADB_USER: timbangan_nasi
+      MARIADB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
+      TZ: Asia/Jakarta
+    volumes:
+      - timbangan_nasi_db:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u root -p$${MARIADB_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [timbangan-nasi]
+    security_opt: [no-new-privileges:true]
+
+volumes:
+  timbangan_nasi_db:
+networks:
+  timbangan-nasi:
+    driver: bridge

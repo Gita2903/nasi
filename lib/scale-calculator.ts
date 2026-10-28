@@ -13,6 +13,11 @@ export interface ScaleStats {
   maxNet: number;
 }
 
+export function calculatePortions(totalNetKg: number, portionGrams: number): number {
+  if (!Number.isFinite(totalNetKg) || !Number.isFinite(portionGrams) || totalNetKg <= 0 || portionGrams <= 0) return 0;
+  return Math.floor((totalNetKg * 1000) / portionGrams);
+}
+
 export interface GlobalBatchStats {
   totalBatches: number;
   totalCrates: number;
@@ -138,7 +143,8 @@ export function finalizeBatchRecord(
   batchNumber: number,
   batchName: string = `Batch #${batchNumber}`,
   operatorName: string = 'Operator',
-  notes?: string
+  notes?: string,
+  portionGrams: number = 150
 ): BatchRecord {
   const stats = calculateScaleStats(crates);
   const riceCount = new Map<string, number>();
@@ -161,6 +167,8 @@ export function finalizeBatchRecord(
     totalNetKg: stats.totalNet,
     totalNetTon: stats.totalNetTon,
     avgNetKg: stats.avgNet,
+    portionGrams,
+    totalPortions: calculatePortions(stats.totalNet, portionGrams),
     createdAt: startTime,
     completedAt: now,
     notes,

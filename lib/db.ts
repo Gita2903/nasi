@@ -40,6 +40,8 @@ const toBatch = (r: any, crates: CrateEntry[]): BatchRecord => ({
   totalNetKg: r.total_net_kg,
   totalNetTon: r.total_net_ton,
   avgNetKg: r.avg_net_kg,
+  portionGrams: Number(r.portion_grams ?? 150),
+  totalPortions: Number(r.total_portions ?? 0),
   createdAt: Number(r.created_at),
   completedAt: Number(r.completed_at),
   notes: r.notes ?? undefined,

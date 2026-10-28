@@ -45,6 +45,14 @@ export default function HomePage() {
   const [settings, setSettings] = useState<ScaleSettings>(DEFAULT_SETTINGS);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [portionGrams, setPortionGrams] = useState(150);
+
+  const handlePortionGramsChange = (value: number) => setPortionGrams(value);
+
+  const handleFinalizeBatch = (notes?: string) => {
+    if (activeCrates.length === 0) return;
+    return run('/api/batches', 'POST', { notes, portionGrams });
+  };
 
   // Active Batch Number & Name
   const activeBatchNumber = getNextBatchNumber(batches);
@@ -97,11 +105,6 @@ export default function HomePage() {
   const handleClearActiveCrates = () => run('/api/crates', 'DELETE');
 
   // Batch number/name/operator are decided server-side inside one transaction
-  const handleFinalizeBatch = (notes?: string) => {
-    if (activeCrates.length === 0) return;
-    return run('/api/batches', 'POST', { notes });
-  };
-
   const handleDeleteBatch = (id: string) => run(`/api/batches/${id}`, 'DELETE');
 
   const handleClearAllBatches = () => run('/api/batches', 'DELETE');
@@ -146,6 +149,8 @@ export default function HomePage() {
             settings={settings}
             activeBatchNumber={activeBatchNumber}
             cratesInActiveBatch={activeCrates.length}
+            portionGrams={portionGrams}
+            onPortionGramsChange={handlePortionGramsChange}
             onAddEntry={handleAddCrate}
           />
 
@@ -159,6 +164,7 @@ export default function HomePage() {
                   onRemoveCrate={handleRemoveActiveCrate}
                   onFinalizeBatch={handleFinalizeBatch}
                   onClearActiveCrates={handleClearActiveCrates}
+                  portionGrams={portionGrams}
                 />
                 <BatchHistoryList
                   batches={batches}

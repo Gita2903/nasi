@@ -15,6 +15,8 @@ interface ScaleInputFormProps {
   settings: ScaleSettings;
   activeBatchNumber: number;
   cratesInActiveBatch: number;
+  portionGrams: number;
+  onPortionGramsChange: (value: number) => void;
   onAddEntry: (entry: Omit<CrateEntry, 'id' | 'timestamp'>) => void;
 }
 
@@ -23,6 +25,8 @@ export default function ScaleInputForm({
   settings,
   activeBatchNumber,
   cratesInActiveBatch,
+  portionGrams,
+  onPortionGramsChange,
   onAddEntry,
 }: ScaleInputFormProps) {
   const [prevNextCrateNumber, setPrevNextCrateNumber] = useState(nextCrateNumber);
@@ -315,6 +319,26 @@ export default function ScaleInputForm({
               className="field mt-2"
             />
           )}
+        </div>
+
+        {/* Satuan porsi */}
+        <div>
+          <label htmlFor="portion-grams" className="mb-2 block text-sm font-medium">
+            Satuan per porsi (gram)
+          </label>
+          <input
+            id="portion-grams"
+            type="number"
+            inputMode="numeric"
+            min="1"
+            step="1"
+            value={portionGrams || ''}
+            onChange={(e) => onPortionGramsChange(parseInt(e.target.value, 10) || 0)}
+            placeholder="Contoh: 150"
+            className="field"
+            required
+          />
+          <p className="mt-1 text-sm text-muted">Dipakai menghitung jumlah porsi saat batch disimpan.</p>
         </div>
 
         {/* Catatan */}

@@ -24,6 +24,12 @@ export default function AppHeader({ settings, batchCount, onOpenSettings, onOpen
           <button type="button" className="btn btn-sm" onClick={onOpenSettings}>
             Pengaturan
           </button>
+          <a className="btn btn-sm" href="/users">
+            User
+          </a>
+          <button type="button" className="btn btn-sm" onClick={() => { fetch('/api/auth/logout', { method: 'POST' }).then(() => { location.href = '/login'; }); }}>
+            Logout
+          </button>
         </nav>
       </div>
     </header>

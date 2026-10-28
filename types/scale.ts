@@ -22,6 +22,8 @@ export interface BatchRecord {
   totalNetKg: number;
   totalNetTon: number; // in metric tons
   avgNetKg: number;
+  portionGrams: number;
+  totalPortions: number;
   createdAt: number;
   completedAt: number;
   notes?: string;

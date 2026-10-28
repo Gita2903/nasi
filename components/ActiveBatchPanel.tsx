@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { CrateEntry } from '@/types/scale';
-import { calculateScaleStats } from '@/lib/scale-calculator';
+import { calculatePortions, calculateScaleStats } from '@/lib/scale-calculator';
 import { kg, ton, timeId } from '@/lib/format';
 
 interface ActiveBatchPanelProps {
@@ -13,6 +13,7 @@ interface ActiveBatchPanelProps {
   onRemoveCrate: (id: string) => void;
   onFinalizeBatch: (notes?: string) => void;
   onClearActiveCrates: () => void;
+  portionGrams: number;
 }
 
 export default function ActiveBatchPanel({
@@ -22,6 +23,7 @@ export default function ActiveBatchPanel({
   onRemoveCrate,
   onFinalizeBatch,
   onClearActiveCrates,
+  portionGrams,
 }: ActiveBatchPanelProps) {
   const [notes, setNotes] = useState<string>('');
   const [isFinalizing, setIsFinalizing] = useState<boolean>(false);
@@ -148,7 +150,7 @@ export default function ActiveBatchPanel({
         {isFinalizing ? (
           <form onSubmit={handleConfirmFinalize} className="space-y-3">
             <p className="font-medium">
-              Simpan Batch #{batchNumber}: {stats.totalCrates} krat, {kg(stats.totalNet)} kg ({ton(stats.totalNet)} ton)?
+              Simpan Batch #{batchNumber}: {stats.totalCrates} krat, {kg(stats.totalNet)} kg ({ton(stats.totalNet)} ton), {calculatePortions(stats.totalNet, portionGrams).toLocaleString('id-ID')} porsi?
             </p>
             <label htmlFor="batch-notes" className="block text-sm font-medium">
               Catatan batch <span className="font-normal text-muted">(boleh kosong)</span>

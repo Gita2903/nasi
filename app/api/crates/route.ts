@@ -1,8 +1,10 @@
 import { pool, loadState } from '@/lib/db';
 import { readJson, badRequest, serverError } from '@/lib/http';
 import { calculateNetWeight, validateCrateInput } from '@/lib/scale-calculator';
+import { requireUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
+  try { await requireUser(); } catch { return Response.json({ error: 'Login diperlukan' }, { status: 401 }); }
   const b = await readJson(req);
   if (!b) return badRequest('Body request tidak valid');
   const gross = Number(b.grossWeight);
@@ -38,6 +40,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
+  try { await requireUser(); } catch { return Response.json({ error: 'Login diperlukan' }, { status: 401 }); }
   try {
     await pool.query('DELETE FROM crates WHERE batch_id IS NULL');
     return Response.json(await loadState());

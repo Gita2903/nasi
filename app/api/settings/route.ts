@@ -1,7 +1,9 @@
 import { pool, loadState } from '@/lib/db';
 import { readJson, badRequest, serverError } from '@/lib/http';
+import { requireUser } from '@/lib/auth';
 
 export async function PUT(req: Request) {
+  try { await requireUser(); } catch { return Response.json({ error: 'Login diperlukan' }, { status: 401 }); }
   const b = await readJson(req);
   if (!b) return badRequest('Body request tidak valid');
   const tare = Number(b.defaultTare);

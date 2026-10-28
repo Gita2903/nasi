@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   calculateNetWeight,
+  calculatePortions,
   validateCrateInput,
   calculateScaleStats,
   getNextCrateNumber,
@@ -118,6 +119,22 @@ test('generateBatchWhatsAppSummary and generateBatchCSV output correct format', 
   const csv = generateBatchCSV([batch]);
   assert.match(csv, /Batch #,Nama Batch,No Krat/);
   assert.match(csv, /1,"Batch Pagi",1,"Frozen Nasi Putih",26.5,1.5,25/);
+});
+
+test('calculatePortions floors total kilograms into whole portions', () => {
+  assert.equal(calculatePortions(150, 150), 1000);
+  assert.equal(calculatePortions(149.99, 150), 999);
+  assert.equal(calculatePortions(150, 0), 0);
+});
+
+test('finalizeBatchRecord stores portion size and calculated portions', () => {
+  const crate: CrateEntry = {
+    id: 'portion-crate', crateNumber: 1, grossWeight: 151.5, tareWeight: 1.5,
+    netWeight: 150, riceType: 'Nasi Putih', timestamp: 1,
+  };
+  const batch = finalizeBatchRecord([crate], 1, 'Batch Porsi', 'Budi', undefined, 150);
+  assert.equal(batch.portionGrams, 150);
+  assert.equal(batch.totalPortions, 1000);
 });
 
 test('finalizeBatchRecord picks the most frequent rice type', () => {

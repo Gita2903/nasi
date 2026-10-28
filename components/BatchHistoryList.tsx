@@ -118,6 +118,10 @@ export default function BatchHistoryList({
                     <span className="text-sm text-muted tabular-nums">
                       {ton(batch.totalNetKg)} ton dari {batch.totalCrates} krat
                     </span>
+                    <br />
+                    <span className="text-sm font-semibold text-go tabular-nums">
+                      {batch.totalPortions.toLocaleString('id-ID')} porsi ({batch.portionGrams} gram/porsi)
+                    </span>
                   </p>
                 </div>
 
